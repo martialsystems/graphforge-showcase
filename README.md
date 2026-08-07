@@ -110,4 +110,5 @@ published here.
 ## Author
 
 Samuel Wagner, Martial Systems LLC, 2026
+
 Built to showcase a recruiter-friendly version of the proprietary GraphForge, I am working on @ Martial Systems LLC. 
