@@ -55,9 +55,9 @@ Laws:
 
 `examples/agent_release_gate.py` runs:
 
-1. **Legal path** — tests pass, review approves, publish succeeds.
-2. **Illegal path** — agent leaves review `pending` → `LawViolation`.
-3. **Illegal path** — tests failed → `LawViolation` at `test`.
+1. **Legal path:** tests pass, review approves, publish succeeds.
+2. **Illegal path:** agent leaves review `pending` → `LawViolation`.
+3. **Illegal path:** tests failed → `LawViolation` at `test`.
 
 Core runtime is under `src/lawgraph/` (~200 lines): channels, reducers, graph
 runner, laws, audit log.
@@ -109,6 +109,5 @@ published here.
 
 ## Author
 
-Sam Wagner — Martial Systems LLC  
-Built as a public, recruiter-readable slice of work on agent/process control
-planes (agentic systems, reliability, fail-closed automation).
+Samuel Wagner, Martial Systems LLC, 2026
+Built to showcase a recruiter-friendly version of the proprietary GraphForge, I am working on @ Martial Systems LLC. 
