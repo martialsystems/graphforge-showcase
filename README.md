@@ -11,7 +11,7 @@ nodes, audit of gate decisions.
 ## Why this exists
 
 Agents and automation are good at taking actions. They are bad at respecting
-unstated process:
+unstated processes:
 
 - publish without review
 - promote a build when tests failed
