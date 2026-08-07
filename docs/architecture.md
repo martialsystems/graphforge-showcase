@@ -10,11 +10,11 @@ rule is only in a README, nothing stops an illegal transition.
 
 Encode the allowed control flow as an explicit graph over typed state:
 
-1. **Channels** — named state slots with reducers (last-write or append).
-2. **Nodes** — steps that return partial updates.
-3. **Edges** — fixed or conditional next step.
-4. **Laws** — predicates run after a node; failure aborts the run (fail closed).
-5. **Audit** — append-only event list of node and law outcomes.
+1. **Channels:** named state slots with reducers (last-write or append).
+2. **Nodes:** steps that return partial updates.
+3. **Edges:** fixed or conditional next step.
+4. **Laws:** predicates run after a node; failure aborts the run (fail closed).
+5. **Audit:** append-only event list of node and law outcomes.
 
 Illegal writes to unknown channels raise. Illegal law outcomes raise
 `LawViolation`. The run does not continue to publish/deploy after a failure.
