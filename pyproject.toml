@@ -1,0 +1,15 @@
+[project]
+name = "lawgraph-demo"
+version = "0.1.0"
+description = "Portfolio demo: product-law state graphs with fail-closed gates"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Martial Systems LLC" }]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
