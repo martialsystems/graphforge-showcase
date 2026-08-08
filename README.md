@@ -121,7 +121,7 @@ post-mortem or interview walkthrough.
 
 Longer notes: [docs/architecture.md](docs/architecture.md).
 
-## What interviewers usually ask
+## Design FAQ
 
 | Question | Short answer |
 |----------|----------------|
