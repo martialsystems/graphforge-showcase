@@ -3,6 +3,8 @@
 Minimal control-plane pattern for **encoding process rules as an executable
 graph** so agent and CI pipelines **fail closed** on illegal steps.
 
+[User] -> [Typed state + explicit graph] -> [Deterministic engine loop] -> [Fail-closed laws + audit]
+
 This repository is a **portfolio / interview demo**. It is not the commercial
 GraphForge product (that engine is private and proprietary). The ideas here are
 the ones I use in production systems: typed state, explicit topology, laws after
