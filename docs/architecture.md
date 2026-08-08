@@ -47,7 +47,7 @@ Swap the domain labels; keep the same gate pattern.
 
 ## Why not just X?
 
-Interviewers often ask why this is not “just” some other tool. Short answers:
+Critics often ask why this is not “just” some other tool. Short answers:
 
 - **A pile of if-statements / a script.** Works until topology and gates
   grow. Here, allowed steps, state shape, and laws are first-class structure.
