@@ -29,7 +29,7 @@ Illegal writes to unknown channels raise. Illegal law outcomes raise
 
 ```
 src/lawgraph/     # tiny runtime
-examples/         # agent release gate (toy domain)
+examples/         # release gate + data-pipeline promotion gate
 tests/            # legal path + fail-closed paths
 ```
 
@@ -44,3 +44,32 @@ tests/            # legal path + fail-closed paths
 | Prove what ran | `audit_log` |
 
 Swap the domain labels; keep the same gate pattern.
+
+## Why not just X?
+
+Interviewers often ask why this is not “just” some other tool. Short answers:
+
+- **A pile of if-statements / a script.** Works until topology and gates
+  grow. Here, allowed steps, state shape, and laws are first-class structure.
+  Illegal channel writes and missing edges fail in the runtime, not only when
+  someone remembered the right branch.
+
+- **A generic state-machine library.** FSMs encode transitions well; they
+  rarely encode *typed state merges* and *post-step product laws* as the main
+  unit. This demo is oriented around “after this node, these invariants must
+  hold or the run dies,” with an audit trail of gate outcomes.
+
+- **LangGraph / agent frameworks.** Those are excellent for LLM tool loops,
+  memory, and multi-agent orchestration. This demo is deliberately smaller
+  and process-first: the graph is a control plane for *whether an action is
+  allowed*, not a full agent runtime. You can put an LLM *inside* a node;
+  laws stay plain predicates.
+
+- **Policy engines / OPA alone.** External policy engines decide allow/deny
+  for a request. This pattern couples policy to *graph position* (after which
+  step) and to *channel state produced by prior nodes*, so “publish only if
+  review_status was approved on this run” is natural. Complementary, not a
+  substitute for every org-wide policy use case.
+
+The commercial GraphForge product (private) layers more on this idea;
+this repo only teaches the core shape.

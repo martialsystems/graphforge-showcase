@@ -20,13 +20,14 @@ CondFn = Callable[[Dict[str, Any]], str]
 
 
 class GraphError(RuntimeError):
-    pass
+    """Runtime error for illegal graph structure or execution faults."""
 
 
 class LawViolation(GraphError):
     """Raised when a product law fails after a node (fail closed)."""
 
-    def __init__(self, law: str, node: str, detail: str):
+    def __init__(self, law: str, node: str, detail: str) -> None:
+        """Record which law failed, on which node, and a short detail string."""
         self.law = law
         self.node = node
         self.detail = detail
@@ -41,7 +42,12 @@ class _Node:
 
 
 class Graph:
-    def __init__(self, schema: StateSchema, *, entry: str, terminal: str = "END"):
+    """Directed graph over a StateSchema with optional post-node laws."""
+
+    def __init__(
+        self, schema: StateSchema, *, entry: str, terminal: str = "END"
+    ) -> None:
+        """Create an empty graph; call ``add_node`` / ``add_edge`` before ``run``."""
         self.schema = schema
         self.entry = entry
         self.terminal = terminal
@@ -55,13 +61,15 @@ class Graph:
         name: str,
         fn: NodeFn,
         *,
-        laws: Optional[list[tuple[str, LawFn]]] = None,
+        laws: Optional[List[Tuple[str, LawFn]]] = None,
     ) -> None:
+        """Register a node and optional laws that run after a successful write."""
         if name in self._nodes or name == self.terminal:
             raise GraphError(f"node already exists: {name}")
         self._nodes[name] = _Node(name=name, fn=fn, laws=list(laws or []))
 
     def add_edge(self, src: str, dst: str) -> None:
+        """Add a fixed edge from ``src`` to ``dst``."""
         if src in self._cond:
             raise GraphError(f"{src} already has a conditional edge")
         self._edges[src] = dst
@@ -69,17 +77,20 @@ class Graph:
     def add_conditional_edges(
         self, src: str, cond: CondFn, mapping: Mapping[str, str]
     ) -> None:
+        """Route from ``src`` using ``cond(state)`` keys into ``mapping``."""
         if src in self._edges:
             raise GraphError(f"{src} already has a fixed edge")
         self._cond[src] = (cond, dict(mapping))
 
     def require_law(self, node: str, law_name: str, law_fn: LawFn) -> None:
+        """Attach an additional law to an existing node."""
         if node not in self._nodes:
             raise GraphError(f"unknown node: {node}")
         self._nodes[node].laws.append((law_name, law_fn))
 
     @property
-    def audit_log(self) -> list[dict[str, Any]]:
+    def audit_log(self) -> List[Dict[str, Any]]:
+        """Copy of node/law audit events from the last ``run``."""
         return list(self._audit)
 
     def run(
@@ -87,7 +98,8 @@ class Graph:
         initial: Optional[Mapping[str, Any]] = None,
         *,
         max_steps: int = 32,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
+        """Execute from ``entry`` until ``terminal``; raise on law failure."""
         if self.entry not in self._nodes:
             raise GraphError(f"entry node missing: {self.entry}")
 
@@ -152,7 +164,7 @@ class Graph:
         self._audit.append({"event": "terminal", "steps": steps})
         return state
 
-    def _next(self, node: str, state: dict[str, Any]) -> str:
+    def _next(self, node: str, state: Dict[str, Any]) -> str:
         if node in self._cond:
             cond, mapping = self._cond[node]
             key = cond(state)

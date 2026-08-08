@@ -1,5 +1,7 @@
 # Product-law graphs (portfolio demo)
 
+[![tests](https://github.com/martialsystems/graphforge-showcase/actions/workflows/test.yml/badge.svg)](https://github.com/martialsystems/graphforge-showcase/actions/workflows/test.yml)
+
 Minimal control-plane pattern for **encoding process rules as an executable
 graph** so agent and CI pipelines **fail closed** on illegal steps.
 
@@ -9,6 +11,9 @@ This repository is a **portfolio / interview demo**. It is not the commercial
 GraphForge product (that engine is private and proprietary). The ideas here are
 the ones I use in production systems: typed state, explicit topology, laws after
 nodes, audit of gate decisions.
+
+**Status:** fixed-scope demo repo, not actively seeking contributions — see
+[CONTRIBUTING.md](CONTRIBUTING.md). Commercial product remains private.
 
 ## Why this exists
 
@@ -34,6 +39,9 @@ pip install pytest
 
 # legal path + two illegal paths (prints what failed)
 PYTHONPATH=src:. python examples/agent_release_gate.py
+
+# second domain: data-pipeline promotion gate
+PYTHONPATH=src:. python examples/data_pipeline_gate.py
 
 # tests
 PYTHONPATH=src:. pytest -q
@@ -61,8 +69,42 @@ Laws:
 2. **Illegal path:** agent leaves review `pending` → `LawViolation`.
 3. **Illegal path:** tests failed → `LawViolation` at `test`.
 
+Sample run (`PYTHONPATH=src:. python examples/agent_release_gate.py`):
+
+```text
+=== legal path: tests pass, review approves ===
+published: True digest: sha256:demo-artifact
+events: ['planned', 'implemented', 'tested_ok', 'review_approved', 'published']
+audit tail: [{'event': 'node_ok', 'node': 'review_gate', 'step': 4}, {'event': 'law_ok', 'node': 'publish', 'law': 'publish_safe'}, {'event': 'node_ok', 'node': 'publish', 'step': 5}, {'event': 'terminal', 'steps': 5}]
+
+=== illegal path: agent skips review ===
+caught: law 'review_required' failed after node 'review_gate': review_status='pending'; need approved
+audit: [{'event': 'node_ok', 'node': 'plan', 'step': 1}, {'event': 'node_ok', 'node': 'implement', 'step': 2}, {'event': 'law_ok', 'node': 'test', 'law': 'tests_must_pass'}, {'event': 'node_ok', 'node': 'test', 'step': 3}, {'event': 'law_fail', 'node': 'review_gate', 'law': 'review_required'}]
+
+=== illegal path: tests failed ===
+caught: law 'tests_must_pass' failed after node 'test': refusing to continue with failing tests
+
+ok
+```
+
 Core runtime is under `src/lawgraph/` (~200 lines): channels, reducers, graph
 runner, laws, audit log.
+
+## Example: data-pipeline promotion gate
+
+Same runtime, different domain (`examples/data_pipeline_gate.py`):
+
+```text
+ingest → validate → stage → promote → END
+```
+
+| After node | Law |
+|------------|-----|
+| `validate` | schema ok and row_count > 0 |
+| `stage` | quality_score >= threshold |
+| `promote` | schema + quality + stage digest required |
+
+Legal path promotes; low quality or empty schema raises `LawViolation`.
 
 ## Design notes
 
@@ -93,7 +135,7 @@ Longer notes: [docs/architecture.md](docs/architecture.md).
 **In scope**
 
 - Small graph runtime
-- One end-to-end agent-style gate example
+- End-to-end gate examples (agent release + data-pipeline promotion)
 - Tests for legal and illegal paths
 
 **Out of scope**

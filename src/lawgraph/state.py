@@ -15,10 +15,12 @@ Reducer = Callable[[Any, Any], Any]
 
 
 def last_value(_old: Any, new: Any) -> Any:
+    """Keep the newest write (scalar / overwrite semantics)."""
     return new
 
 
 def append_list(old: Any, new: Any) -> List[Any]:
+    """Append one value or extend with a list of values."""
     base = list(old or [])
     if isinstance(new, list):
         base.extend(new)
@@ -28,33 +30,44 @@ def append_list(old: Any, new: Any) -> List[Any]:
 
 
 def forbid_write(old: Any, new: Any) -> Any:
+    """Reject any write; use for sealed or append-only-by-policy channels."""
     raise ValueError("channel is append-only or sealed; write refused")
 
 
 @dataclass(frozen=True)
 class Channel:
+    """One named state slot with a reducer and default value."""
+
     name: str
     reducer: Reducer = last_value
     default: Any = None
 
 
 class StateSchema:
-    def __init__(self, channels: List[Channel]):
+    """Fixed set of channels; merges node updates through each reducer."""
+
+    def __init__(self, channels: List[Channel]) -> None:
+        """Build a schema from the given channels (names must be unique)."""
         if not channels:
             raise ValueError("at least one channel required")
         names = [c.name for c in channels]
         if len(names) != len(set(names)):
             raise ValueError("duplicate channel names")
-        self._channels = {c.name: c for c in channels}
+        self._channels: Dict[str, Channel] = {c.name: c for c in channels}
 
     @property
     def names(self) -> frozenset[str]:
+        """Return the set of legal channel names."""
         return frozenset(self._channels)
 
     def empty(self) -> Dict[str, Any]:
+        """Return a fresh state map filled with channel defaults."""
         return {name: ch.default for name, ch in self._channels.items()}
 
-    def apply(self, state: Mapping[str, Any], update: Mapping[str, Any]) -> Dict[str, Any]:
+    def apply(
+        self, state: Mapping[str, Any], update: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        """Merge ``update`` into ``state``; raise KeyError on unknown channels."""
         if not isinstance(update, Mapping):
             raise TypeError("update must be a mapping")
         out = dict(state)
