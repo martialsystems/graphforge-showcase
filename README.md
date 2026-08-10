@@ -19,6 +19,27 @@ verifies real SPY/BTC consumers; this repo is the teachable kernel only.
 
 **Status:** fixed-scope demo — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## In production (where GraphForge actually checks)
+
+This demo is the portable control-plane pattern only. The commercial engine
+(private) verifies real research/ops consumers. Public surfaces report **pass/fail
+suite checks**, not forecast skill or live trading.
+
+| Surface | What you see | Link |
+|---------|----------------|------|
+| GraphForge landing | Product framing + links to suite boards | [martialsystems.net/graphforge.html](https://martialsystems.net/graphforge.html) |
+| SPY suite checks | GraphForge consumer verify footprint | [martialsystems.net/spy-graphforge.html](https://martialsystems.net/spy-graphforge.html) |
+| BTC 15m ops checks | GraphForge consumer verify footprint | [martialsystems.net/btc-graphforge.html](https://martialsystems.net/btc-graphforge.html) |
+| SPY vol board | Research board; pipeline re-exports verification (Last checked) | [martialsystems.net/vol-forecast.html](https://martialsystems.net/vol-forecast.html) |
+| Browser console demo | In-browser template laws (not this Python repo) | [martialsystems.net/graphforge-demo/](https://martialsystems.net/graphforge-demo/) |
+| This repo CI | Legal + illegal gate tests | [Actions](https://github.com/martialsystems/graphforge-showcase/actions) |
+
+SPY/BTC **graph sources stay private**. Public pages are verification footprints
+and research boards, not a source distribution of GraphForge.
+
+Interview line: public repo teaches the kernel; production GraphForge already
+gates SPY and BTC consumers on the boards above.
+
 ## Why this exists
 
 Agents and automation are good at taking actions. They are bad at respecting

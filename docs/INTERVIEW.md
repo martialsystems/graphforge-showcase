@@ -7,6 +7,20 @@ chain. No human-in-the-loop node.
 Commercial GraphForge (private) already gates real SPY/BTC consumers. This repo
 is the portable kernel only.
 
+## In production (open these)
+
+| Surface | URL |
+|---------|-----|
+| GraphForge landing | https://martialsystems.net/graphforge.html |
+| SPY suite checks | https://martialsystems.net/spy-graphforge.html |
+| BTC 15m ops checks | https://martialsystems.net/btc-graphforge.html |
+| SPY vol board (Last checked) | https://martialsystems.net/vol-forecast.html |
+| Browser console demo | https://martialsystems.net/graphforge-demo/ |
+| This demo repo | https://github.com/martialsystems/graphforge-showcase |
+
+Do not claim those boards are “the model edge.” They show software/process checks
+and research exports. Graph source remains private.
+
 ## 60-second pitch
 
 Agents and CI are good at taking actions and bad at respecting unstated process.
@@ -52,8 +66,9 @@ Tests drive illegal initial state and expect `LawViolation`.
 plane for *whether an action is allowed*, not a full agent framework.
 
 **Production?** Private GraphForge adds checkpoints, multi-surface catalog/trace,
-richer hash audit, packaging. SPY/BTC verification already runs there—not in
-this public demo.
+richer hash audit, packaging. SPY/BTC verification already runs there—point at
+the public suite boards and vol board **Last checked** (links above), not at
+this public demo’s domain graphs.
 
 ## Do not claim
 
