@@ -1,9 +1,13 @@
 """Compile and run a small state graph with fail-closed laws.
 
 This is intentionally small. Production GraphForge (private, proprietary)
-adds checkpoints, interrupts, catalog/trace, license packaging, and more.
+adds checkpoints, catalog/trace, license packaging, and more.
 This package only shows the control-plane idea: explicit topology + typed
-merges + laws that reject illegal transitions.
+merges + laws that reject illegal transitions + hash-chained audit.
+
+Fail-safes are mechanical and autonomous: max_steps, fail-closed laws,
+sealed channels (via schema reducers), and an audit chain. There is no
+human-approval step in the runner.
 """
 
 from __future__ import annotations
@@ -11,6 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
+from .audit import GENESIS, seal_event, verify_audit
 from .state import StateSchema
 
 
@@ -93,28 +98,56 @@ class Graph:
         """Copy of node/law audit events from the last ``run``."""
         return list(self._audit)
 
+    def verify_audit(self) -> None:
+        """Raise ValueError if the last run's audit chain is broken."""
+        verify_audit(self._audit)
+
+    def _record(self, event: Mapping[str, Any]) -> None:
+        prev = self._audit[-1]["hash"] if self._audit else GENESIS
+        self._audit.append(seal_event(prev, dict(event)))
+
     def run(
         self,
         initial: Optional[Mapping[str, Any]] = None,
         *,
         max_steps: int = 32,
     ) -> Dict[str, Any]:
-        """Execute from ``entry`` until ``terminal``; raise on law failure."""
+        """
+        Execute from ``entry`` until ``terminal``; raise on law failure.
+
+        Fail-safes (all autonomous):
+        - ``max_steps``: runaway loops abort with GraphError
+        - laws after nodes: LawViolation fails closed (no further edges)
+        - illegal channel writes: GraphError; state from that write is not kept
+          as a successful step (apply raises before laws/next)
+        """
         if self.entry not in self._nodes:
             raise GraphError(f"entry node missing: {self.entry}")
+        if max_steps < 1:
+            raise GraphError("max_steps must be >= 1")
 
         state = self.schema.empty()
         if initial:
-            # initial values go through reducers as first write
             state = self.schema.apply(state, dict(initial))
 
         node = self.entry
         steps = 0
         self._audit.clear()
+        self._record({"event": "run_start", "entry": self.entry, "max_steps": max_steps})
 
         while node != self.terminal:
             if steps >= max_steps:
-                raise GraphError(f"max_steps={max_steps} exceeded at {node!r}")
+                self._record(
+                    {
+                        "event": "budget_fail",
+                        "node": node,
+                        "max_steps": max_steps,
+                    }
+                )
+                raise GraphError(
+                    f"max_steps={max_steps} exceeded at {node!r} "
+                    f"(autonomous budget fail-safe)"
+                )
             if node not in self._nodes:
                 raise GraphError(f"unknown node during run: {node}")
 
@@ -124,12 +157,29 @@ class Graph:
             try:
                 state = self.schema.apply(state, update)
             except KeyError as e:
+                self._record(
+                    {
+                        "event": "write_fail",
+                        "node": node,
+                        "detail": str(e),
+                    }
+                )
                 raise GraphError(f"node {node!r} wrote illegal channel: {e}") from e
+            except ValueError as e:
+                # sealed / forbid_write reducers
+                self._record(
+                    {
+                        "event": "write_fail",
+                        "node": node,
+                        "detail": str(e),
+                    }
+                )
+                raise GraphError(f"node {node!r} sealed-channel write: {e}") from e
 
             for law_name, law_fn in spec.laws:
                 try:
                     law_fn(dict(state), node)
-                    self._audit.append(
+                    self._record(
                         {
                             "event": "law_ok",
                             "node": node,
@@ -137,7 +187,7 @@ class Graph:
                         }
                     )
                 except LawViolation:
-                    self._audit.append(
+                    self._record(
                         {
                             "event": "law_fail",
                             "node": node,
@@ -146,9 +196,8 @@ class Graph:
                     )
                     raise
                 except Exception as e:
-                    # laws must raise LawViolation for expected failures
                     viol = LawViolation(law_name, node, str(e))
-                    self._audit.append(
+                    self._record(
                         {
                             "event": "law_fail",
                             "node": node,
@@ -158,10 +207,12 @@ class Graph:
                     )
                     raise viol from e
 
-            self._audit.append({"event": "node_ok", "node": node, "step": steps})
+            self._record({"event": "node_ok", "node": node, "step": steps})
             node = self._next(node, state)
 
-        self._audit.append({"event": "terminal", "steps": steps})
+        self._record({"event": "terminal", "steps": steps})
+        # Self-check: chain must verify after a clean terminal
+        verify_audit(self._audit)
         return state
 
     def _next(self, node: str, state: Dict[str, Any]) -> str:

@@ -10,11 +10,13 @@ An agent (or CI job) walks a release graph:
 Product laws (enforced after specific nodes):
 
   1. After test: tests must have passed.
-  2. After review_gate: a human (or designated reviewer) must approve.
+  2. After review_gate: an automated review signal must be approved
+     (policy bot / CI check — not a human-in-the-loop pause).
   3. After publish: artifact digest must be recorded; publish is forbidden
      if review was skipped or tests failed.
 
-Illegal paths fail closed with LawViolation. That is the point.
+Illegal paths fail closed with LawViolation. Fully autonomous: no human
+interrupt node. Fail-safes are laws + audit.
 
 This example is domain-neutral on purpose. Swap "publish" for "deploy",
 "promote model", or "post to site" — the pattern is the same.
@@ -70,12 +72,12 @@ def build_release_graph(*, force_skip_review: bool = False) -> Graph:
 
     def review_gate(state):
         if force_skip_review:
-            # Illegal agent behavior: jump past human review.
+            # Illegal agent behavior: leave automated review pending.
             return {
                 "review_status": "pending",
                 "events": ["review_skipped_by_agent"],
             }
-        # Happy path: reviewer approves.
+        # Happy path: automated review service approves.
         return {
             "review_status": "approved",
             "events": ["review_approved"],
@@ -145,6 +147,8 @@ def main() -> int:
     print("published:", final["published"], "digest:", final["artifact_digest"])
     print("events:", final["events"])
     print("audit tail:", g.audit_log[-4:])
+    g.verify_audit()
+    print("audit verified: ok")
 
     print()
     print("=== illegal path: agent skips review ===")

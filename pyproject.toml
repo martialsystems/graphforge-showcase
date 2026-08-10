@@ -1,7 +1,7 @@
 [project]
 name = "lawgraph-demo"
-version = "0.1.0"
-description = "Portfolio demo: product-law state graphs with fail-closed gates"
+version = "0.2.0"
+description = "Portfolio demo: autonomous product-law graphs with fail-closed gates and hash audit"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

@@ -3,73 +3,76 @@
 ## Problem
 
 Agent and CI pipelines encode process in prose and scripts. Rules like “do not
-publish without review” are easy to skip under automation pressure. When the
-rule is only in a README, nothing stops an illegal transition.
+publish without review” or “never overwrite fresher artifacts” are easy to skip
+under automation pressure. When the rule is only in a README, nothing stops an
+illegal transition.
 
 ## Approach
 
 Encode the allowed control flow as an explicit graph over typed state:
 
 1. **Channels:** named state slots with reducers (last-write or append).
-2. **Nodes:** steps that return partial updates.
+2. **Nodes:** steps that return partial updates (fully autonomous).
 3. **Edges:** fixed or conditional next step.
 4. **Laws:** predicates run after a node; failure aborts the run (fail closed).
-5. **Audit:** append-only event list of node and law outcomes.
+5. **Budgets:** `max_steps` stops runaway loops.
+6. **Audit:** hash-chained event list; `verify_audit()` detects tamper.
 
-Illegal writes to unknown channels raise. Illegal law outcomes raise
-`LawViolation`. The run does not continue to publish/deploy after a failure.
+Illegal writes to unknown channels raise. Sealed reducers refuse writes.
+Illegal law outcomes raise `LawViolation`. The run does not continue to
+publish/deploy after a failure. **No human-approval node.**
+
+## Autonomous fail-safes
+
+| Fail-safe | Mechanism |
+|-----------|-----------|
+| Fail closed | `LawViolation` stops the run |
+| Step budget | `max_steps` → `GraphError` + `budget_fail` audit |
+| Typed state | Unknown channel → `GraphError` |
+| Stale publish | Law: src track ≥ dest track |
+| Tool junk | Law: required schema keys |
+| Evidence | Hash-chained audit after every run |
+
+Humans may change graphs or inputs **offline** and re-run. They are not a
+runtime gate.
 
 ## What this demo is not
 
 - Not the commercial GraphForge engine (private product).
-- No LLM runtime, checkpoints, multi-tenant catalog, or license server.
+- Not SPY/BTC domain graphs (those live in private consumers).
+- No LLM runtime requirement, multi-tenant catalog, or license server.
 - No claim about trading, forecasts, or domain alpha.
 
 ## Package layout
 
 ```
-src/lawgraph/     # tiny runtime
-examples/         # release gate + data-pipeline promotion gate
-tests/            # legal path + fail-closed paths
+src/lawgraph/     # tiny runtime (state, graph, audit)
+examples/         # release, pipeline, site publish, agent tool
+tests/            # legal + fail-closed paths
+docs/             # architecture + interview card
 ```
 
 ## Mapping to agentic systems
 
 | Concern | Demo mechanism |
 |---------|----------------|
-| Agent wants to ship | `publish` node |
-| Must pass tests | law on `test` |
-| Must get review | law on `review_gate` |
-| Skip review | `LawViolation` |
-| Prove what ran | `audit_log` |
-
-Swap the domain labels; keep the same gate pattern.
+| Agent wants to ship | `publish` / `apply` node |
+| Must pass tests / schema | law after node |
+| Tool returns junk | `tool_schema_valid` |
+| Runaway tool loop | `max_steps` |
+| Overwrite fresher artifact | `stale_over_fresh_block` |
+| Prove what ran | hash-chained `audit_log` |
 
 ## Why not just X?
 
-Critics often ask why this is not “just” some other tool. Short answers:
+- **Scripts / if-statements.** Topology and laws are structure; illegal writes
+  fail in the runtime.
+- **Generic FSM libraries.** This demo centers *post-step product laws* and
+  typed merges with audit of gate outcomes.
+- **LangGraph / agent frameworks.** Those orchestrate LLM tool loops. This is
+  process-first: whether an action is allowed. An LLM can sit *inside* a node;
+  laws stay predicates.
+- **OPA alone.** External policy for a request; here policy is coupled to graph
+  position and channel state produced on this run.
 
-- **A pile of if-statements / a script.** Works until topology and gates
-  grow. Here, allowed steps, state shape, and laws are first-class structure.
-  Illegal channel writes and missing edges fail in the runtime, not only when
-  someone remembered the right branch.
-
-- **A generic state-machine library.** FSMs encode transitions well; they
-  rarely encode *typed state merges* and *post-step product laws* as the main
-  unit. This demo is oriented around “after this node, these invariants must
-  hold or the run dies,” with an audit trail of gate outcomes.
-
-- **LangGraph / agent frameworks.** Those are excellent for LLM tool loops,
-  memory, and multi-agent orchestration. This demo is deliberately smaller
-  and process-first: the graph is a control plane for *whether an action is
-  allowed*, not a full agent runtime. You can put an LLM *inside* a node;
-  laws stay plain predicates.
-
-- **Policy engines / OPA alone.** External policy engines decide allow/deny
-  for a request. This pattern couples policy to *graph position* (after which
-  step) and to *channel state produced by prior nodes*, so “publish only if
-  review_status was approved on this run” is natural. Complementary, not a
-  substitute for every org-wide policy use case.
-
-The commercial GraphForge product (private) layers more on this idea;
-this repo only teaches the core shape.
+Commercial GraphForge layers more on this idea; this repo teaches the core shape.

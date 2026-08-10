@@ -26,6 +26,7 @@ def test_legal_path_publishes():
     assert final["artifact_digest"]
     assert "published" in final["events"]
     assert any(e.get("event") == "law_ok" for e in g.audit_log)
+    g.verify_audit()
 
 
 def test_skip_review_fails_closed():
