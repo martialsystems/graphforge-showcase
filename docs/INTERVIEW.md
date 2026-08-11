@@ -11,11 +11,11 @@ is the portable kernel only.
 
 | Surface | URL |
 |---------|-----|
-| GraphForge landing | https://martialsystems.net/graphforge.html |
-| SPY suite checks | https://martialsystems.net/spy-graphforge.html |
-| BTC 15m ops checks | https://martialsystems.net/btc-graphforge.html |
-| SPY vol board (Last checked) | https://martialsystems.net/vol-forecast.html |
-| Browser console demo | https://martialsystems.net/graphforge-demo/ |
+| GraphForge landing | https://martialsys.net/graphforge.html |
+| SPY suite checks | https://martialsys.net/spy-graphforge.html |
+| BTC 15m ops checks | https://martialsys.net/btc-graphforge.html |
+| SPY vol board (Last checked) | https://martialsys.net/vol-forecast.html |
+| Browser console demo | https://martialsys.net/graphforge-demo/ |
 | This demo repo | https://github.com/martialsystems/graphforge-showcase |
 
 Do not claim those boards are “the model edge.” They show software/process checks

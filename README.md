@@ -27,11 +27,11 @@ suite checks**, not forecast skill or live trading.
 
 | Surface | What you see | Link |
 |---------|----------------|------|
-| GraphForge landing | Product framing + links to suite boards | [martialsystems.net/graphforge.html](https://martialsystems.net/graphforge.html) |
-| SPY suite checks | GraphForge consumer verify footprint | [martialsystems.net/spy-graphforge.html](https://martialsystems.net/spy-graphforge.html) |
-| BTC 15m ops checks | GraphForge consumer verify footprint | [martialsystems.net/btc-graphforge.html](https://martialsystems.net/btc-graphforge.html) |
-| SPY vol board | Research board; pipeline re-exports verification (Last checked) | [martialsystems.net/vol-forecast.html](https://martialsystems.net/vol-forecast.html) |
-| Browser console demo | In-browser template laws (not this Python repo) | [martialsystems.net/graphforge-demo/](https://martialsystems.net/graphforge-demo/) |
+| GraphForge landing | Product framing + links to suite boards | [martialsys.net/graphforge.html](https://martialsys.net/graphforge.html) |
+| SPY suite checks | GraphForge consumer verify footprint | [martialsys.net/spy-graphforge.html](https://martialsys.net/spy-graphforge.html) |
+| BTC 15m ops checks | GraphForge consumer verify footprint | [martialsys.net/btc-graphforge.html](https://martialsys.net/btc-graphforge.html) |
+| SPY vol board | Research board; pipeline re-exports verification (Last checked) | [martialsys.net/vol-forecast.html](https://martialsys.net/vol-forecast.html) |
+| Browser console demo | In-browser template laws (not this Python repo) | [martialsys.net/graphforge-demo/](https://martialsys.net/graphforge-demo/) |
 | This repo CI | Legal + illegal gate tests | [Actions](https://github.com/martialsystems/graphforge-showcase/actions) |
 
 SPY/BTC **graph sources stay private**. Public pages are verification footprints
