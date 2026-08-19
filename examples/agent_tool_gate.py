@@ -96,7 +96,7 @@ def build_tool_graph(*, force_partial: bool = False) -> Graph:
     def law_apply_safe(state, node):
         if not state.get("tool_ok"):
             raise LawViolation(
-                "tool_schema_valid",
+                "apply_safe",
                 node,
                 "apply blocked: tool not ok",
             )
