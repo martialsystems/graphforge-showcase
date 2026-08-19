@@ -30,6 +30,7 @@ def build_site_publish_graph(
     *,
     force_stale_src: bool = False,
     force_unfreeze: bool = False,
+    force_noop_publish: bool = False,
 ) -> Graph:
     schema = StateSchema(
         [
@@ -65,7 +66,9 @@ def build_site_publish_graph(
         }
 
     def publish(state):
-        src = int(state.get("src_track") or 0)
+        src = state.get("src_track")
+        if force_noop_publish:
+            return {"published": True, "events": ["published"]}
         return {
             "published": True,
             "dest_track": src,
@@ -110,9 +113,14 @@ def build_site_publish_graph(
                 node,
                 "publish blocked: freeze was disturbed",
             )
-        if int(state.get("dest_track") or 0) < int(state.get("src_track") or 0):
-            # after publish node, dest should equal src; law runs after write
-            pass
+        dest = state.get("dest_track")
+        src = state.get("src_track")
+        if dest != src:
+            raise LawViolation(
+                "publish_safe",
+                node,
+                f"dest_track={dest} != src_track={src} after publish",
+            )
         if not state.get("published"):
             raise LawViolation(
                 "publish_mark_required",

@@ -62,3 +62,16 @@ def test_zero_src_equals_zero_dest_is_allowed():
     assert final["dest_track"] == 0
     assert final["src_track"] == 0
     g.verify_audit()
+
+
+def test_noop_publish_blocked_when_dest_not_advanced():
+    g = build_site_publish_graph(force_noop_publish=True)
+    with pytest.raises(LawViolation) as ei:
+        g.run({"src_track": 100, "dest_track": 50, "freeze_locked": True})
+    assert ei.value.law == "publish_safe"
+    assert "dest_track=50" in ei.value.detail
+    assert "src_track=100" in ei.value.detail
+    assert not any(
+        e.get("event") == "node_ok" and e.get("node") == "publish"
+        for e in g.audit_log
+    )
