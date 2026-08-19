@@ -44,3 +44,16 @@ def test_invalid_schema_fails_closed():
         g.run({"row_count": 0, "schema_ok": False})
     assert ei.value.law == "schema_must_validate"
     assert ei.value.node == "validate"
+
+
+def test_zero_quality_score_is_not_treated_as_missing():
+    """0.0 is a real score; must reach the law, not be rewritten to MIN_QUALITY."""
+    g = build_pipeline_graph(force_low_quality=False)
+    with pytest.raises(LawViolation) as ei:
+        g.run({"row_count": 500, "schema_ok": True, "quality_score": 0.0})
+    assert ei.value.law == "quality_threshold"
+    assert ei.value.node == "stage"
+    assert "quality_score=0.0" in ei.value.detail
+    assert not any(
+        e.get("event") == "node_ok" and e.get("node") == "promote" for e in g.audit_log
+    )

@@ -65,7 +65,8 @@ def build_pipeline_graph(*, force_low_quality: bool = False) -> Graph:
         if force_low_quality:
             score = 0.4
         else:
-            score = float(state.get("quality_score") or MIN_QUALITY)
+            raw = state.get("quality_score")
+            score = MIN_QUALITY if raw is None else float(raw)
         return {
             "quality_score": score,
             "stage_digest": "sha256:stage-demo",

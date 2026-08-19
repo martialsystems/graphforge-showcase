@@ -45,7 +45,8 @@ def build_site_publish_graph(
 
     def build(state):
         # Simulate built artifact track id (e.g. epoch or content generation).
-        src = int(state.get("src_track") or 100)
+        raw = state.get("src_track")
+        src = 100 if raw is None else int(raw)
         if force_stale_src:
             src = 10  # older than a typical dest of 50
         return {"src_track": src, "events": ["built"]}
